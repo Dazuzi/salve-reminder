@@ -181,13 +181,7 @@ public class ReminderManager {
         if (SalveData.MANDATORY_SLAYER_TASKS.contains(taskName)) {
             return true;
         }
-        if (config.remindOnBlackDemonsTask() && SalveData.BLACK_DEMON_TASKS.contains(taskName)) {
-            return true;
-        }
         if (config.remindOnBlueDragonsTask() && SalveData.BLUE_DRAGON_TASKS.contains(taskName)) {
-            return true;
-        }
-        if (config.remindOnMonkeysTask() && SalveData.MONKEY_TASKS.contains(taskName)) {
             return true;
         }
         return config.remindOnOgresTask() && SalveData.OGRE_TASKS.contains(taskName);

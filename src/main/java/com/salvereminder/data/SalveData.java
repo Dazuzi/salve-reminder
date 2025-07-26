@@ -32,9 +32,7 @@ public final class SalveData {
             "aberrant spectres", "ankou", "crawling hands", "ghosts", "revenants",
             "shades", "skeletons", "vet'ion", "vorkath", "zombies"
     );
-    public static final Set<String> BLACK_DEMON_TASKS = ImmutableSet.of("black demons");
     public static final Set<String> BLUE_DRAGON_TASKS = ImmutableSet.of("blue dragons");
-    public static final Set<String> MONKEY_TASKS = ImmutableSet.of("monkeys");
     public static final Set<String> OGRE_TASKS = ImmutableSet.of("ogres");
     public static final Set<Integer> UNDEAD_NPCS = ImmutableSet.of(
             2, 3, 4, 5, 6, 7,                                                                // Aberrant spectre

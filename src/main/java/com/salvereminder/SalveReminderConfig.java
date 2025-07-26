@@ -65,38 +65,20 @@ public interface SalveReminderConfig extends Config {
     default boolean slayerTaskReminderEnabled() { return true; }
 
     @ConfigItem(
-            keyName = "remindOnBlackDemonsTask",
-            name = "Black Demons (Demonic Gorillas)",
-            description = "Show the reminder on a Black Demons task, as killing Demonic Gorillas is an option.",
-            section = slayerTaskSection,
-            position = 1
-    )
-    default boolean remindOnBlackDemonsTask() { return true; }
-
-    @ConfigItem(
             keyName = "remindOnBlueDragonsTask",
             name = "Blue Dragons (Vorkath)",
             description = "Show the reminder on a Blue Dragons task, as killing Vorkath is an option.",
             section = slayerTaskSection,
-            position = 2
+            position = 1
     )
     default boolean remindOnBlueDragonsTask() { return true; }
-
-    @ConfigItem(
-            keyName = "remindOnMonkeysTask",
-            name = "Monkeys (Demonic/Tortured Gorillas)",
-            description = "Show the reminder on a Monkeys task, as killing Demonic or Tortured Gorillas is an option.",
-            section = slayerTaskSection,
-            position = 3
-    )
-    default boolean remindOnMonkeysTask() { return true; }
 
     @ConfigItem(
             keyName = "remindOnOgresTask",
             name = "Ogres (Zogres/Skogres)",
             description = "Show the reminder on an Ogres task, as killing Zogres or Skogres is an option.",
             section = slayerTaskSection,
-            position = 4
+            position = 2
     )
     default boolean remindOnOgresTask() { return true; }
 
