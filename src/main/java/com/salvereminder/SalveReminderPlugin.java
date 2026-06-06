@@ -28,7 +28,7 @@ public class SalveReminderPlugin extends Plugin {
 	}
 	@Override
 	protected void shutDown() {
-		reminderManager.stop();
+		reminderManager.reset();
 		overlayManager.remove(salveReminderOverlay);
 	}
 	@Subscribe

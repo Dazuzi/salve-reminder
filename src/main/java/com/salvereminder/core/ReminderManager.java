@@ -31,11 +31,10 @@ public class ReminderManager {
 	@Getter
 	private boolean isStackingWarningActive = false;
 	private Actor lastTarget = null;
+	private String lastTaskName = null;
+	private String lastTaskNameLower = null;
 	private int ticksSinceInteractionEnd = -1;
-	public void stop() {
-		reset();
-	}
-	private void reset() {
+	public void reset() {
 		resetAlert();
 		lastTarget = null;
 		ticksSinceInteractionEnd = -1;
@@ -79,9 +78,12 @@ public class ReminderManager {
 			return;
 		}
 		boolean isUndead = SalveData.UNDEAD_NPCS.contains(npcId);
-		boolean isRelevantSlayerTask = isSlayerTaskReminderActive();
 		ItemContainer equipment = client.getItemContainer(InventoryID.WORN);
 		boolean wearingSalve = isWearingSalveAmulet(equipment);
+		boolean isRelevantSlayerTask = false;
+		if (config.showStackingWarning() && wearingSalve && !isUndead) {
+			isRelevantSlayerTask = isSlayerTaskReminderActive();
+		}
 		if (config.showStackingWarning() && wearingSalve && (isUndead || isRelevantSlayerTask)) {
 			int wornSlayerHelmId = getWornSlayerHelmOrBlackMaskId(equipment);
 			if (wornSlayerHelmId != -1) {
@@ -96,6 +98,9 @@ public class ReminderManager {
 			showAlert = true;
 			tooltipReason = "Salve amulet is ineffective against non-undead monsters.";
 			return;
+		}
+		if (!wearingSalve && (!isUndead || !config.alertOnUndeadCombat())) {
+			isRelevantSlayerTask = isSlayerTaskReminderActive();
 		}
 		if (!wearingSalve && (isRelevantSlayerTask || (config.alertOnUndeadCombat() && isUndead))) {
 			showAlert = true;
@@ -124,11 +129,15 @@ public class ReminderManager {
 		if (!config.slayerTaskReminderEnabled()) return false;
 		String taskName = configManager.getRSProfileConfiguration(SLAYER_PLUGIN_GROUP, SLAYER_TASK_NAME_KEY);
 		if (taskName == null || taskName.isEmpty()) return false;
-		taskName = taskName.toLowerCase(Locale.ROOT);
+		if (!taskName.equals(lastTaskName)) {
+			lastTaskName = taskName;
+			lastTaskNameLower = taskName.toLowerCase(Locale.ROOT);
+		}
+		taskName = lastTaskNameLower;
 		if (SalveData.MANDATORY_SLAYER_TASKS.contains(taskName)) return true;
-		if (config.remindOnBlueDragonsTask() && SalveData.BLUE_DRAGON_TASKS.contains(taskName)) return true;
-		if (config.remindOnSkeletonsTask() && SalveData.SKELETON_TASKS.contains(taskName)) return true;
-		return config.remindOnOgresTask() && SalveData.OGRE_TASKS.contains(taskName);
+		if (config.remindOnBlueDragonsTask() && SalveData.BLUE_DRAGON_TASK.equals(taskName)) return true;
+		if (config.remindOnSkeletonsTask() && SalveData.SKELETON_TASK.equals(taskName)) return true;
+		return config.remindOnOgresTask() && SalveData.OGRE_TASK.equals(taskName);
 	}
 	private boolean isWearingSalveAmulet(ItemContainer equipment) {
 		if (equipment == null) return false;

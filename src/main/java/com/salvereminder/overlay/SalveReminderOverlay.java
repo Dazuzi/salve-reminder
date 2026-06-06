@@ -39,12 +39,11 @@ public class SalveReminderOverlay extends OverlayPanel {
 	@Override
 	public Dimension render(Graphics2D graphics) {
 		if (!reminderManager.isShowAlert()) return null;
-		panelComponent.getChildren().clear();
 		final boolean useFlash = config.flashBackground() && reminderManager.isFlash();
 		Color bgColor = useFlash ? config.flashBackgroundColor() : config.backgroundColor();
 		panelComponent.setBackgroundColor(bgColor);
 		int itemIDToDisplay = config.displayIcon().getItemID();
-		if (reminderManager.isStackingWarningActive() && useFlash) {
+		if (reminderManager.isStackingWarningActive()) {
 			int conflictingId = reminderManager.getConflictingHeadgearId();
 			if (conflictingId != -1) itemIDToDisplay = conflictingId;
 		}

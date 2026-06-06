@@ -1,6 +1,8 @@
 package com.salvereminder.data;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.api.gameval.NpcID;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 public final class SalveData {
 	private static final int OATHPLATE_SLAYER_HELMET_I = 33439;
@@ -9,7 +11,7 @@ public final class SalveData {
 	private static final int RADIANT_SLAYER_HELMET_I = 33445;
 	private static final int RADIANT_SLAYER_HELMET_I_SW = 33447;
 	private static final int RADIANT_SLAYER_HELMET_I_PVPA = 33449;
-	public static final Set<Integer> SALVE_AMULET_IDS = Set.of(
+	public static final Set<Integer> SALVE_AMULET_IDS = ids(
 		ItemID.CRYSTALSHARD_NECKLACE,
 		ItemID.LOTR_CRYSTALSHARD_NECKLACE_UPGRADE,
 		ItemID.NZONE_SALVE_AMULET,
@@ -19,7 +21,7 @@ public final class SalveData {
 		ItemID.PVPA_SALVE_AMULET,
 		ItemID.PVPA_SALVE_AMULET_E
 	);
-	public static final Set<Integer> BLACK_MASK_IDS = Set.of(
+	public static final Set<Integer> BLACK_MASK_IDS = ids(
 		ItemID.HARMLESS_BLACK_MASK_10,
 		ItemID.HARMLESS_BLACK_MASK_9,
 		ItemID.HARMLESS_BLACK_MASK_8,
@@ -129,10 +131,10 @@ public final class SalveData {
 		"aberrant spectres", "ankou", "calvar'ion", "crawling hands", "ghosts",
 		"revenants", "shades", "vet'ion", "vorkath", "zombies"
 	);
-	public static final Set<String> BLUE_DRAGON_TASKS = Set.of("blue dragons");
-	public static final Set<String> SKELETON_TASKS = Set.of("skeletons");
-	public static final Set<String> OGRE_TASKS = Set.of("ogres");
-	public static final Set<Integer> UNDEAD_NPCS = Set.of(
+	public static final String BLUE_DRAGON_TASK = "blue dragons";
+	public static final String SKELETON_TASK = "skeletons";
+	public static final String OGRE_TASK = "ogres";
+	public static final Set<Integer> UNDEAD_NPCS = ids(
 		NpcID.SLAYER_ABBERANT_SPECTRE_1,
 		NpcID.SLAYER_ABBERANT_SPECTRE_2,
 		NpcID.SLAYER_ABBERANT_SPECTRE_3,
@@ -647,5 +649,10 @@ public final class SalveData {
 		NpcID.VORKATH_SPAWN_QUEST,
 		NpcID.VORKATH_SPAWN
 	);
+	private static Set<Integer> ids(Integer... ids) {
+		Set<Integer> set = new HashSet<>();
+		Collections.addAll(set, ids);
+		return Collections.unmodifiableSet(set);
+	}
 	private SalveData() {}
 }
