@@ -4,12 +4,9 @@ import com.salvereminder.data.SalveData;
 import lombok.Getter;
 import net.runelite.api.*;
 import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
 import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.client.config.ConfigManager;
-import net.runelite.client.eventbus.EventBus;
-import net.runelite.client.eventbus.Subscribe;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Locale;
@@ -18,16 +15,10 @@ public class ReminderManager {
 	private static final String SLAYER_PLUGIN_GROUP = "slayer";
 	private static final String SLAYER_TASK_NAME_KEY = "taskName";
 	@Inject
-	@SuppressWarnings("unused")
 	private Client client;
 	@Inject
-	@SuppressWarnings("unused")
-	private EventBus eventBus;
-	@Inject
-	@SuppressWarnings("unused")
 	private SalveReminderConfig config;
 	@Inject
-	@SuppressWarnings("unused")
 	private ConfigManager configManager;
 	@Getter
 	private boolean showAlert = false;
@@ -41,11 +32,7 @@ public class ReminderManager {
 	private boolean isStackingWarningActive = false;
 	private Actor lastTarget = null;
 	private int ticksSinceInteractionEnd = -1;
-	public void start() {
-		eventBus.register(this);
-	}
 	public void stop() {
-		eventBus.unregister(this);
 		reset();
 	}
 	private void reset() {
@@ -59,13 +46,9 @@ public class ReminderManager {
 		conflictingHeadgearId = -1;
 		isStackingWarningActive = false;
 	}
-	@Subscribe
-	@SuppressWarnings("unused")
 	public void onGameStateChanged(GameStateChanged event) {
 		if (event.getGameState() != GameState.LOGGED_IN) reset();
 	}
-	@Subscribe
-	@SuppressWarnings("unused")
 	public void onInteractingChanged(InteractingChanged event) {
 		if (event.getSource() != client.getLocalPlayer()) return;
 		Actor target = event.getTarget();
@@ -74,9 +57,7 @@ public class ReminderManager {
 			ticksSinceInteractionEnd = -1;
 		} else if (lastTarget != null) ticksSinceInteractionEnd = 0;
 	}
-	@Subscribe
-	@SuppressWarnings("unused")
-	public void onGameTick(GameTick tick) {
+	public void onGameTick() {
 		if (ticksSinceInteractionEnd != -1) ticksSinceInteractionEnd++;
 		updateAlertState();
 		updateFlash();

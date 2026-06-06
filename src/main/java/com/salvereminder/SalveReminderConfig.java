@@ -1,6 +1,7 @@
 package com.salvereminder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.client.config.*;
 import java.awt.*;
 @ConfigGroup("salvereminder")
@@ -8,11 +9,9 @@ public interface SalveReminderConfig extends Config {
 	@Getter
 	@RequiredArgsConstructor
 	enum SalveIcon {
-		@SuppressWarnings("unused")
-		SALVE_AMULET("Salve amulet", 4081),
-		@SuppressWarnings("unused")
-		SALVE_AMULET_E("Salve amulet (e)", 10588),
-		SALVE_AMULET_EI("Salve amulet (ei)", 12018);
+		SALVE_AMULET("Salve amulet", ItemID.CRYSTALSHARD_NECKLACE),
+		SALVE_AMULET_E("Salve amulet (e)", ItemID.LOTR_CRYSTALSHARD_NECKLACE_UPGRADE),
+		SALVE_AMULET_EI("Salve amulet (ei)", ItemID.NZONE_SALVE_AMULET_E);
 		private final String name;
 		private final int itemID;
 		@Override
