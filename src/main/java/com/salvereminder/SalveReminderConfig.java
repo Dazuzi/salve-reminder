@@ -63,11 +63,19 @@ public interface SalveReminderConfig extends Config {
 	)
 	default boolean remindOnBlueDragonsTask() { return true; }
 	@ConfigItem(
+			keyName = "remindOnSkeletonsTask",
+			name = "Skeletons (Vet'ion/Calvar'ion)",
+			description = "Show the reminder on a Skeletons task, as killing Vet'ion or Calvar'ion is an option.",
+			section = slayerTaskSection,
+			position = 2
+	)
+	default boolean remindOnSkeletonsTask() { return true; }
+	@ConfigItem(
 			keyName = "remindOnOgresTask",
 			name = "Ogres (Zogres/Skogres)",
 			description = "Show the reminder on an Ogres task, as killing Zogres or Skogres is an option.",
 			section = slayerTaskSection,
-			position = 2
+			position = 3
 	)
 	default boolean remindOnOgresTask() { return true; }
 	@ConfigSection(

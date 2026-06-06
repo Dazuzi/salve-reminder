@@ -127,6 +127,7 @@ public class ReminderManager {
 		taskName = taskName.toLowerCase(Locale.ROOT);
 		if (SalveData.MANDATORY_SLAYER_TASKS.contains(taskName)) return true;
 		if (config.remindOnBlueDragonsTask() && SalveData.BLUE_DRAGON_TASKS.contains(taskName)) return true;
+		if (config.remindOnSkeletonsTask() && SalveData.SKELETON_TASKS.contains(taskName)) return true;
 		return config.remindOnOgresTask() && SalveData.OGRE_TASKS.contains(taskName);
 	}
 	private boolean isWearingSalveAmulet(ItemContainer equipment) {

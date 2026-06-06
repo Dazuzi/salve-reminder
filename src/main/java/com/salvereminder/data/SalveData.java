@@ -126,10 +126,11 @@ public final class SalveData {
 		RADIANT_SLAYER_HELMET_I_PVPA
 	);
 	public static final Set<String> MANDATORY_SLAYER_TASKS = Set.of(
-		"aberrant spectres", "ankou", "crawling hands", "ghosts", "revenants",
-		"shades", "skeletons", "vet'ion", "vorkath", "zombies"
+		"aberrant spectres", "ankou", "calvar'ion", "crawling hands", "ghosts",
+		"revenants", "shades", "vet'ion", "vorkath", "zombies"
 	);
 	public static final Set<String> BLUE_DRAGON_TASKS = Set.of("blue dragons");
+	public static final Set<String> SKELETON_TASKS = Set.of("skeletons");
 	public static final Set<String> OGRE_TASKS = Set.of("ogres");
 	public static final Set<Integer> UNDEAD_NPCS = Set.of(
 		NpcID.SLAYER_ABBERANT_SPECTRE_1,
