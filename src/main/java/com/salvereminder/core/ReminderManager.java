@@ -6,15 +6,15 @@ import net.runelite.api.*;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.InteractingChanged;
+import net.runelite.api.gameval.InventoryID;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Locale;
 @Singleton
 public class ReminderManager {
-	private static final int FLASH_DURATION_TICKS = 1;
-	private static final int EQUIPMENT_CONTAINER_ID = 94;
 	private static final String SLAYER_PLUGIN_GROUP = "slayer";
 	private static final String SLAYER_TASK_NAME_KEY = "taskName";
 	@Inject
@@ -40,7 +40,6 @@ public class ReminderManager {
 	@Getter
 	private boolean isStackingWarningActive = false;
 	private Actor lastTarget = null;
-	private int flashTickCounter = 0;
 	private int ticksSinceInteractionEnd = -1;
 	public void start() {
 		eventBus.register(this);
@@ -85,7 +84,6 @@ public class ReminderManager {
 	private void updateAlertState() {
 		if (lastTarget == null || (ticksSinceInteractionEnd != -1 && ticksSinceInteractionEnd > config.hideAlertDelay())) {
 			reset();
-			if (ticksSinceInteractionEnd > config.hideAlertDelay()) lastTarget = null;
 			return;
 		}
 		if (!(lastTarget instanceof NPC)) {
@@ -101,15 +99,17 @@ public class ReminderManager {
 		}
 		boolean isUndead = SalveData.UNDEAD_NPCS.contains(npcId);
 		boolean isRelevantSlayerTask = isSlayerTaskReminderActive();
-		boolean wearingSalve = isWearingSalveAmulet();
-		int wornSlayerHelmId = getWornSlayerHelmOrBlackMaskId();
-		boolean wearingSlayerHelm = wornSlayerHelmId != -1;
-		if (config.showStackingWarning() && wearingSalve && wearingSlayerHelm && (isUndead || isRelevantSlayerTask)) {
-			showAlert = true;
-			tooltipReason = "Salve amulet and Black mask/Slayer helmet effects do not stack.";
-			conflictingHeadgearId = wornSlayerHelmId;
-			isStackingWarningActive = true;
-			return;
+		ItemContainer equipment = client.getItemContainer(InventoryID.WORN);
+		boolean wearingSalve = isWearingSalveAmulet(equipment);
+		if (config.showStackingWarning() && wearingSalve && (isUndead || isRelevantSlayerTask)) {
+			int wornSlayerHelmId = getWornSlayerHelmOrBlackMaskId(equipment);
+			if (wornSlayerHelmId != -1) {
+				showAlert = true;
+				tooltipReason = "Salve amulet and Black mask/Slayer helmet effects do not stack.";
+				conflictingHeadgearId = wornSlayerHelmId;
+				isStackingWarningActive = true;
+				return;
+			}
 		}
 		if (config.warnOnUselessSalve() && wearingSalve && !isUndead) {
 			showAlert = true;
@@ -127,17 +127,11 @@ public class ReminderManager {
 	private void updateFlash() {
 		if (!showAlert) {
 			flash = false;
-			flashTickCounter = 0;
 			return;
 		}
-		flashTickCounter++;
-		if (flashTickCounter >= FLASH_DURATION_TICKS) {
-			flash = !flash;
-			flashTickCounter = 0;
-		}
+		flash = !flash;
 	}
-	private int getWornSlayerHelmOrBlackMaskId() {
-		ItemContainer equipment = client.getItemContainer(EQUIPMENT_CONTAINER_ID);
+	private int getWornSlayerHelmOrBlackMaskId(ItemContainer equipment) {
 		if (equipment == null) return -1;
 		Item helmet = equipment.getItem(EquipmentInventorySlot.HEAD.getSlotIdx());
 		if (helmet == null) return -1;
@@ -149,13 +143,12 @@ public class ReminderManager {
 		if (!config.slayerTaskReminderEnabled()) return false;
 		String taskName = configManager.getRSProfileConfiguration(SLAYER_PLUGIN_GROUP, SLAYER_TASK_NAME_KEY);
 		if (taskName == null || taskName.isEmpty()) return false;
-		taskName = taskName.toLowerCase();
+		taskName = taskName.toLowerCase(Locale.ROOT);
 		if (SalveData.MANDATORY_SLAYER_TASKS.contains(taskName)) return true;
 		if (config.remindOnBlueDragonsTask() && SalveData.BLUE_DRAGON_TASKS.contains(taskName)) return true;
 		return config.remindOnOgresTask() && SalveData.OGRE_TASKS.contains(taskName);
 	}
-	private boolean isWearingSalveAmulet() {
-		ItemContainer equipment = client.getItemContainer(EQUIPMENT_CONTAINER_ID);
+	private boolean isWearingSalveAmulet(ItemContainer equipment) {
 		if (equipment == null) return false;
 		Item amulet = equipment.getItem(EquipmentInventorySlot.AMULET.getSlotIdx());
 		return amulet != null && SalveData.SALVE_AMULET_IDS.contains(amulet.getId());

@@ -4,6 +4,7 @@ import com.salvereminder.SalveReminderPlugin;
 import com.salvereminder.core.ReminderManager;
 import net.runelite.api.Client;
 import net.runelite.api.MenuAction;
+import net.runelite.api.Point;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -20,6 +21,8 @@ public class SalveReminderOverlay extends OverlayPanel {
 	private final ReminderManager reminderManager;
 	private final ItemManager itemManager;
 	private final TooltipManager tooltipManager;
+	private int lastItemId = -1;
+	private ImageComponent iconComponent = null;
 	@Inject
 	public SalveReminderOverlay(Client client, SalveReminderConfig config, ReminderManager reminderManager, ItemManager itemManager, TooltipManager tooltipManager, SalveReminderPlugin plugin) {
 		super(plugin);
@@ -45,10 +48,15 @@ public class SalveReminderOverlay extends OverlayPanel {
 			int conflictingId = reminderManager.getConflictingHeadgearId();
 			if (conflictingId != -1) itemIDToDisplay = conflictingId;
 		}
-		final BufferedImage iconImage = itemManager.getImage(itemIDToDisplay);
-		if (iconImage != null) panelComponent.getChildren().add(new ImageComponent(iconImage));
+		if (itemIDToDisplay != lastItemId) {
+			final BufferedImage iconImage = itemManager.getImage(itemIDToDisplay);
+			iconComponent = iconImage == null ? null : new ImageComponent(iconImage);
+			lastItemId = itemIDToDisplay;
+		}
+		if (iconComponent != null) panelComponent.getChildren().add(iconComponent);
 		Rectangle bounds = getBounds();
-		if (bounds != null && bounds.contains(client.getMouseCanvasPosition().getX(), client.getMouseCanvasPosition().getY())) {
+		Point mouse = client.getMouseCanvasPosition();
+		if (bounds != null && bounds.contains(mouse.getX(), mouse.getY())) {
 			final String tooltip = reminderManager.getTooltipReason();
 			if (tooltip != null) tooltipManager.add(new Tooltip(tooltip));
 		}
