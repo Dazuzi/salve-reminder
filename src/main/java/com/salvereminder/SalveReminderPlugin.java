@@ -14,7 +14,6 @@ import javax.inject.Inject;
 @PluginDescriptor(
 		name = "Salve Reminder"
 )
-@SuppressWarnings("unused")
 public class SalveReminderPlugin extends Plugin {
 	@Inject
 	private OverlayManager overlayManager;
@@ -32,18 +31,22 @@ public class SalveReminderPlugin extends Plugin {
 		overlayManager.remove(salveReminderOverlay);
 	}
 	@Subscribe
+	@SuppressWarnings("unused")
 	public void onGameStateChanged(GameStateChanged event) {
 		reminderManager.onGameStateChanged(event);
 	}
 	@Subscribe
+	@SuppressWarnings("unused")
 	public void onInteractingChanged(InteractingChanged event) {
 		reminderManager.onInteractingChanged(event);
 	}
 	@Subscribe
+	@SuppressWarnings("unused")
 	public void onGameTick(GameTick tick) {
 		reminderManager.onGameTick();
 	}
 	@Provides
+	@SuppressWarnings("unused")
 	SalveReminderConfig provideConfig(ConfigManager configManager) {
 		return configManager.getConfig(SalveReminderConfig.class);
 	}

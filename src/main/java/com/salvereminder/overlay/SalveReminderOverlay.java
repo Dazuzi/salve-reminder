@@ -8,7 +8,6 @@ import net.runelite.api.Point;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.components.ImageComponent;
 import net.runelite.client.ui.overlay.tooltip.Tooltip;
 import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 import javax.inject.Inject;
@@ -22,7 +21,7 @@ public class SalveReminderOverlay extends OverlayPanel {
 	private final ItemManager itemManager;
 	private final TooltipManager tooltipManager;
 	private int lastItemId = -1;
-	private ImageComponent iconComponent = null;
+	private CenteredImageComponent iconComponent = null;
 	@Inject
 	public SalveReminderOverlay(Client client, SalveReminderConfig config, ReminderManager reminderManager, ItemManager itemManager, TooltipManager tooltipManager, SalveReminderPlugin plugin) {
 		super(plugin);
@@ -34,6 +33,7 @@ public class SalveReminderOverlay extends OverlayPanel {
 		setPosition(OverlayPosition.ABOVE_CHATBOX_RIGHT);
 		setResizable(false);
 		setResettable(true);
+		addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Ignore NPC", "Salve Reminder", e -> reminderManager.ignoreCurrentTarget());
 		addMenuEntry(MenuAction.RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Salve Reminder");
 	}
 	@Override
@@ -49,7 +49,7 @@ public class SalveReminderOverlay extends OverlayPanel {
 		}
 		if (itemIDToDisplay != lastItemId) {
 			final BufferedImage iconImage = itemManager.getImage(itemIDToDisplay);
-			iconComponent = iconImage == null ? null : new ImageComponent(iconImage);
+			iconComponent = iconImage == null ? null : new CenteredImageComponent(iconImage);
 			lastItemId = itemIDToDisplay;
 		}
 		if (iconComponent != null) panelComponent.getChildren().add(iconComponent);

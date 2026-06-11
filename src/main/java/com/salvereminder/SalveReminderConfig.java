@@ -40,10 +40,23 @@ public interface SalveReminderConfig extends Config {
 			position = 2
 	)
 	default boolean warnOnUselessSalve() { return true; }
+	@ConfigItem(
+			keyName = "ignoredNpcs",
+			name = "Ignored NPCs",
+			description = "NPC names to ignore. Supports * and ? wildcards. Separate with commas or new lines.",
+			position = 3
+	)
+	default String ignoredNpcs() { return ""; }
+	@ConfigItem(
+			keyName = "ignoredNpcs",
+			name = "",
+			description = ""
+	)
+	void setIgnoredNpcs(String ignoredNpcs);
 	@ConfigSection(
 			name = "Slayer Task Reminders",
 			description = "Settings for showing the reminder during an undead slayer task.",
-			position = 3
+			position = 4
 	)
 	String slayerTaskSection = "slayerTaskSection";
 	@ConfigItem(
@@ -81,7 +94,7 @@ public interface SalveReminderConfig extends Config {
 	@ConfigSection(
 			name = "Appearance",
 			description = "Settings for the reminder overlay's appearance.",
-			position = 4
+			position = 5
 	)
 	String appearanceSection = "appearanceSection";
 	@ConfigItem(
