@@ -5,7 +5,10 @@ import com.salvereminder.overlay.SalveReminderOverlay;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.InteractingChanged;
+import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -23,6 +26,7 @@ public class SalveReminderPlugin extends Plugin {
 	private SalveReminderOverlay salveReminderOverlay;
 	@Override
 	protected void startUp() {
+		reminderManager.migrateConfig();
 		overlayManager.add(salveReminderOverlay);
 	}
 	@Override
@@ -44,6 +48,21 @@ public class SalveReminderPlugin extends Plugin {
 	@SuppressWarnings("unused")
 	public void onGameTick(GameTick tick) {
 		reminderManager.onGameTick();
+	}
+	@Subscribe
+	@SuppressWarnings("unused")
+	public void onItemContainerChanged(ItemContainerChanged event) {
+		reminderManager.onItemContainerChanged(event);
+	}
+	@Subscribe
+	@SuppressWarnings("unused")
+	public void onConfigChanged(ConfigChanged event) {
+		reminderManager.onConfigChanged(event);
+	}
+	@Subscribe
+	@SuppressWarnings("unused")
+	public void onMenuOptionClicked(MenuOptionClicked event) {
+		reminderManager.onMenuOptionClicked(event);
 	}
 	@Provides
 	@SuppressWarnings("unused")

@@ -1,6 +1,8 @@
 package com.salvereminder.data;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.api.gameval.NpcID;
+import net.runelite.api.gameval.ObjectID;
+import net.runelite.api.gameval.SpriteID;
 import java.util.BitSet;
 import java.util.Set;
 public final class SalveData {
@@ -267,6 +269,8 @@ public final class SalveData {
 		NpcID.NZONE_GA_BEAST_HARD,
 		NpcID.NZONE_GA_BEAST_NORMAL,
 		NpcID.GA_BEAST,
+		NpcID.POH_COMBAT_DUMMY_UNDEADSLAYER_NPC,
+		NpcID.POH_COMBAT_DUMMY_UPGRADED_UNDEADSLAYER_NPC,
 		NpcID.SHADE_LEVEL1,
 		NpcID.SHADESHADOW_LEVEL1,
 		NpcID.MM_ZOMBIE_MONKEY_LARGE,
@@ -648,6 +652,10 @@ public final class SalveData {
 		NpcID.VORKATH_SPAWN_QUEST,
 		NpcID.VORKATH_SPAWN
 	);
+	private static final BitSet UNDEAD_OBJECTS = ids(
+		ObjectID.POH_COMBAT_DUMMY_UNDEADSLAYER,
+		ObjectID.POH_COMBAT_DUMMY_UPGRADED_1_UNDEAD
+	);
 	public static boolean isSalveAmulet(int id) {
 		return contains(SALVE_AMULET_IDS, id);
 	}
@@ -656,6 +664,26 @@ public final class SalveData {
 	}
 	public static boolean isUndeadNpc(int id) {
 		return contains(UNDEAD_NPCS, id);
+	}
+	public static boolean isUndeadObject(int id) {
+		return contains(UNDEAD_OBJECTS, id);
+	}
+	public static int getTaskSpriteId(String taskName) {
+		if (BLUE_DRAGON_TASK.equals(taskName) || "vorkath".equals(taskName)) return SpriteID.IconBoss25x25.VORKATH;
+		if (SKELETON_TASK.equals(taskName) || "vet'ion".equals(taskName) || "calvar'ion".equals(taskName)) return SpriteID.IconBoss25x25.CALVARION_VETION;
+		return -1;
+	}
+	public static int getTaskItemId(String taskName) {
+		if (BLUE_DRAGON_TASK.equals(taskName) || "vorkath".equals(taskName)) return ItemID.VORKATH_HEAD;
+		if (SKELETON_TASK.equals(taskName) || "vet'ion".equals(taskName) || "calvar'ion".equals(taskName)) return ItemID.VETION_PET;
+		if (OGRE_TASK.equals(taskName)) return ItemID.ZOGRE_BONES;
+		return -1;
+	}
+	public static String getTaskOptionName(String taskName) {
+		if (BLUE_DRAGON_TASK.equals(taskName)) return "Vorkath";
+		if (SKELETON_TASK.equals(taskName)) return "Vet'ion/Calvar'ion";
+		if (OGRE_TASK.equals(taskName)) return "Zogres/Skogres";
+		return null;
 	}
 	private static boolean contains(BitSet ids, int id) {
 		return id >= 0 && ids.get(id);
