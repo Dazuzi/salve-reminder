@@ -28,6 +28,8 @@ public class SalveReminderPlugin extends Plugin {
 	protected void startUp() {
 		reminderManager.migrateConfig();
 		overlayManager.add(salveReminderOverlay);
+		salveReminderOverlay.resetSize();
+		salveReminderOverlay.debugStartUp();
 	}
 	@Override
 	protected void shutDown() {

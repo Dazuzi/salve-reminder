@@ -22,6 +22,7 @@ public class SalveReminderOverlay extends OverlayPanel {
 	private static final int BORDER = ComponentConstants.STANDARD_BORDER;
 	private static final int ICON_SIZE = Constants.ITEM_SPRITE_WIDTH;
 	private static final int OVERLAY_SIZE = ICON_SIZE + BORDER * 2;
+	private static final int DEBUG_FRAMES = 20;
 	private final Client client;
 	private final SalveReminderConfig config;
 	private final ReminderManager reminderManager;
@@ -32,6 +33,9 @@ public class SalveReminderOverlay extends OverlayPanel {
 	private int lastSpriteId = -1;
 	private boolean lastCrossed = false;
 	private BufferedImage iconImage = null;
+	private SalveReminderConfig.DebugAlert lastDebugAlert = SalveReminderConfig.DebugAlert.OFF;
+	private int debugFrames = 0;
+	private String debugLastLocationState = null;
 	@Inject
 	public SalveReminderOverlay(Client client, SalveReminderConfig config, ReminderManager reminderManager, ItemManager itemManager, SpriteManager spriteManager, TooltipManager tooltipManager, SalveReminderPlugin plugin) {
 		super(plugin);
@@ -48,10 +52,25 @@ public class SalveReminderOverlay extends OverlayPanel {
 		addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Ignore NPC", "Salve Reminder", e -> reminderManager.ignoreCurrentTarget());
 		addMenuEntry(MenuAction.RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Salve Reminder");
 	}
+	public void resetSize() {
+		Dimension size = size();
+		setPreferredSize(size);
+		getBounds().setSize(size);
+	}
+	public void debugStartUp() {
+		SalveReminderConfig.DebugAlert alert = getDebugAlert();
+		if (alert == SalveReminderConfig.DebugAlert.OFF) return;
+		lastDebugAlert = alert;
+		debugFrames = 0;
+		debugLastLocationState = null;
+		System.out.println("[salve-reminder overlay] startUp alert=" + alert + " " + debugLocationState());
+	}
 	@Override
 	public Dimension render(Graphics2D graphics) {
+		SalveReminderConfig.DebugAlert debugAlert = getDebugAlert();
+		updateDebug(debugAlert);
 		if (!reminderManager.isShowAlert()) {
-			if (getPreferredLocation() == null) return getPreferredSize();
+			if (getPreferredLocation() == null) return size();
 			return null;
 		}
 		final boolean useFlash = config.flashBackground() && reminderManager.isFlash();
@@ -70,6 +89,7 @@ public class SalveReminderOverlay extends OverlayPanel {
 			lastSpriteId = spriteIDToDisplay;
 			lastCrossed = crossed;
 		}
+		debugRender(debugAlert, itemIDToDisplay, spriteIDToDisplay, crossed);
 		BackgroundComponent background = new BackgroundComponent();
 		background.setBackgroundColor(bgColor);
 		background.setRectangle(new Rectangle(0, 0, OVERLAY_SIZE, OVERLAY_SIZE));
@@ -81,6 +101,44 @@ public class SalveReminderOverlay extends OverlayPanel {
 			final String tooltip = reminderManager.getTooltipReason();
 			if (tooltip != null) tooltipManager.add(new Tooltip(tooltip));
 		}
+		return size();
+	}
+	private void updateDebug(SalveReminderConfig.DebugAlert alert) {
+		if (alert == lastDebugAlert) return;
+		debugFrames = 0;
+		debugLastLocationState = null;
+		if (alert == SalveReminderConfig.DebugAlert.OFF) System.out.println("[salve-reminder overlay] debugOff " + debugLocationState());
+		else System.out.println("[salve-reminder overlay] debugOn alert=" + alert + " " + debugLocationState());
+		lastDebugAlert = alert;
+	}
+	private void debugRender(SalveReminderConfig.DebugAlert alert, int itemId, int spriteId, boolean crossed) {
+		if (alert == SalveReminderConfig.DebugAlert.OFF) return;
+		String locationState = debugLocationState();
+		if (debugFrames < DEBUG_FRAMES || !locationState.equals(debugLastLocationState)) System.out.println("[salve-reminder overlay] render frame=" + debugFrames + " alert=" + alert + " " + locationState + " return=" + OVERLAY_SIZE + "x" + OVERLAY_SIZE + " item=" + itemId + " sprite=" + spriteId + " crossed=" + crossed);
+		debugFrames++;
+		debugLastLocationState = locationState;
+	}
+	private String debugLocationState() {
+		return "pos=" + getPosition() + " prefPos=" + getPreferredPosition() + " prefLoc=" + point(getPreferredLocation()) + " prefSize=" + dim(getPreferredSize()) + " bounds=" + rect(getBounds()) + " canvas=" + client.getCanvasWidth() + "x" + client.getCanvasHeight() + " real=" + dim(client.getRealDimensions()) + " resized=" + client.isResized();
+	}
+	private SalveReminderConfig.DebugAlert getDebugAlert() {
+		SalveReminderConfig.DebugAlert alert = config.debugAlert();
+		if (alert == null) return SalveReminderConfig.DebugAlert.OFF;
+		return alert;
+	}
+	private static String point(java.awt.Point point) {
+		if (point == null) return "null";
+		return point.x + "," + point.y;
+	}
+	private static String dim(Dimension dimension) {
+		if (dimension == null) return "null";
+		return dimension.width + "x" + dimension.height;
+	}
+	private static String rect(Rectangle rectangle) {
+		if (rectangle == null) return "null";
+		return rectangle.x + "," + rectangle.y + " " + rectangle.width + "x" + rectangle.height;
+	}
+	private static Dimension size() {
 		return new Dimension(OVERLAY_SIZE, OVERLAY_SIZE);
 	}
 	private static BufferedImage addCross(BufferedImage image) {
