@@ -28,6 +28,8 @@ public class SalveReminderOverlay extends OverlayPanel {
 	private final ItemManager itemManager;
 	private final SpriteManager spriteManager;
 	private final TooltipManager tooltipManager;
+	private final BackgroundComponent background = new BackgroundComponent();
+	private final Rectangle mouseBounds = new Rectangle(0, 0, OVERLAY_SIZE, OVERLAY_SIZE);
 	private int lastItemId = -1;
 	private int lastSpriteId = -1;
 	private boolean lastCrossed = false;
@@ -44,6 +46,7 @@ public class SalveReminderOverlay extends OverlayPanel {
 		setPosition(OverlayPosition.ABOVE_CHATBOX_RIGHT);
 		setResizable(false);
 		setPreferredSize(new Dimension(OVERLAY_SIZE, OVERLAY_SIZE));
+		background.setRectangle(new Rectangle(0, 0, OVERLAY_SIZE, OVERLAY_SIZE));
 		setResettable(true);
 		addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Ignore NPC", "Salve Reminder", e -> reminderManager.ignoreCurrentTarget());
 		addMenuEntry(MenuAction.RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Salve Reminder");
@@ -61,11 +64,9 @@ public class SalveReminderOverlay extends OverlayPanel {
 		}
 		final boolean useFlash = config.flashBackground() && reminderManager.isFlash();
 		Color bgColor = useFlash ? config.flashBackgroundColor() : config.backgroundColor();
-		panelComponent.setBackgroundColor(bgColor);
 		int itemIDToDisplay = reminderManager.getAlertItemId();
 		int spriteIDToDisplay = reminderManager.getAlertSpriteId();
 		boolean crossed = reminderManager.isAlertIconCrossed();
-		if (itemIDToDisplay == -1) itemIDToDisplay = config.displayIcon().getItemID();
 		if (itemIDToDisplay != lastItemId || spriteIDToDisplay != lastSpriteId || crossed != lastCrossed) {
 			iconImage = null;
 			if (spriteIDToDisplay != -1) iconImage = spriteManager.getSprite(spriteIDToDisplay, 0);
@@ -75,14 +76,12 @@ public class SalveReminderOverlay extends OverlayPanel {
 			lastSpriteId = spriteIDToDisplay;
 			lastCrossed = crossed;
 		}
-		BackgroundComponent background = new BackgroundComponent();
 		background.setBackgroundColor(bgColor);
-		background.setRectangle(new Rectangle(0, 0, OVERLAY_SIZE, OVERLAY_SIZE));
 		background.render(graphics);
 		if (iconImage != null) renderIcon(graphics, iconImage);
-		Rectangle bounds = new Rectangle(getBounds().x, getBounds().y, OVERLAY_SIZE, OVERLAY_SIZE);
+		mouseBounds.setBounds(getBounds().x, getBounds().y, OVERLAY_SIZE, OVERLAY_SIZE);
 		Point mouse = client.getMouseCanvasPosition();
-		if (bounds.contains(mouse.getX(), mouse.getY())) {
+		if (mouseBounds.contains(mouse.getX(), mouse.getY())) {
 			final String tooltip = reminderManager.getTooltipReason();
 			if (tooltip != null) tooltipManager.add(new Tooltip(tooltip));
 		}
@@ -112,20 +111,24 @@ public class SalveReminderOverlay extends OverlayPanel {
 		graphics.drawImage(image, x, y, x + bounds.width, y + bounds.height, bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height, null);
 	}
 	private static Rectangle getImageBounds(BufferedImage image) {
-		int minX = image.getWidth();
-		int minY = image.getHeight();
+		int width = image.getWidth();
+		int height = image.getHeight();
+		int minX = width;
+		int minY = height;
 		int maxX = -1;
 		int maxY = -1;
-		for (int y = 0; y < image.getHeight(); y++) {
-			for (int x = 0; x < image.getWidth(); x++) {
-				if ((image.getRGB(x, y) >>> 24) == 0) continue;
+		int[] pixels = image.getRGB(0, 0, width, height, null, 0, width);
+		for (int y = 0; y < height; y++) {
+			int offset = y * width;
+			for (int x = 0; x < width; x++) {
+				if ((pixels[offset + x] >>> 24) == 0) continue;
 				if (x < minX) minX = x;
 				if (y < minY) minY = y;
 				if (x > maxX) maxX = x;
 				if (y > maxY) maxY = y;
 			}
 		}
-		if (maxX == -1) return new Rectangle(0, 0, image.getWidth(), image.getHeight());
+		if (maxX == -1) return new Rectangle(0, 0, width, height);
 		return new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
 	}
 }

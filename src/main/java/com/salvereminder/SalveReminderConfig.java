@@ -1,4 +1,5 @@
 package com.salvereminder;
+import com.salvereminder.data.SalveData;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.runelite.api.gameval.ItemID;
@@ -6,22 +7,19 @@ import net.runelite.client.config.*;
 import java.awt.*;
 @ConfigGroup("salvereminder")
 public interface SalveReminderConfig extends Config {
-	int OATHPLATE_SLAYER_HELMET_I = 33439;
-	int RADIANT_SLAYER_HELMET_I = 33445;
-	@Getter
 	@RequiredArgsConstructor
 	enum SalveIcon {
 		SALVE_AMULET("Salve amulet", ItemID.CRYSTALSHARD_NECKLACE),
 		SALVE_AMULET_E("Salve amulet (e)", ItemID.LOTR_CRYSTALSHARD_NECKLACE_UPGRADE),
 		SALVE_AMULET_EI("Salve amulet (ei)", ItemID.NZONE_SALVE_AMULET_E);
 		private final String name;
+		@Getter
 		private final int itemID;
 		@Override
 		public String toString() {
 			return name;
 		}
 	}
-	@Getter
 	@RequiredArgsConstructor
 	enum StackingIcon {
 		AUTO("Auto equipped", -1),
@@ -39,9 +37,10 @@ public interface SalveReminderConfig extends Config {
 		TZKAL_SLAYER_HELMET("TzKal Slayer", ItemID.SLAYER_HELM_ZUK),
 		ARAXYTE_SLAYER_HELMET("Araxyte Slayer", ItemID.SLAYER_HELM_ARAXYTE),
 		HOODED_SLAYER_HELMET("Hooded Slayer", ItemID.SLAYER_HELM_HOODED),
-		OATHPLATE_SLAYER_HELMET("Oathplate Slayer", OATHPLATE_SLAYER_HELMET_I),
-		RADIANT_SLAYER_HELMET("Radiant Slayer", RADIANT_SLAYER_HELMET_I);
+		OATHPLATE_SLAYER_HELMET("Oathplate Slayer", SalveData.OATHPLATE_SLAYER_HELMET_I),
+		RADIANT_SLAYER_HELMET("Radiant Slayer", SalveData.RADIANT_SLAYER_HELMET_I);
 		private final String name;
+		@Getter
 		private final int itemID;
 		@Override
 		public String toString() {

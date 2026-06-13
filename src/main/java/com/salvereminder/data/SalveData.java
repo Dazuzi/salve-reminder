@@ -6,10 +6,10 @@ import net.runelite.api.gameval.SpriteID;
 import java.util.BitSet;
 import java.util.Set;
 public final class SalveData {
-	private static final int OATHPLATE_SLAYER_HELMET_I = 33439;
+	public static final int OATHPLATE_SLAYER_HELMET_I = 33439;
 	private static final int OATHPLATE_SLAYER_HELMET_I_SW = 33441;
 	private static final int OATHPLATE_SLAYER_HELMET_I_PVPA = 33443;
-	private static final int RADIANT_SLAYER_HELMET_I = 33445;
+	public static final int RADIANT_SLAYER_HELMET_I = 33445;
 	private static final int RADIANT_SLAYER_HELMET_I_SW = 33447;
 	private static final int RADIANT_SLAYER_HELMET_I_PVPA = 33449;
 	private static final BitSet SALVE_AMULET_IDS = ids(

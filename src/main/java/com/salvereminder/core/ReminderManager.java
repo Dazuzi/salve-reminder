@@ -72,7 +72,7 @@ public class ReminderManager {
 	private AlertType transientAlertType = AlertType.NONE;
 	private boolean equipmentStateKnown = false;
 	private boolean lastWearingSalve = false;
-	private boolean lastWearingSlayerHeadgear = false;
+	private int lastWornHeadgearId = NO_ICON;
 	public void migrateConfig() {
 		if (MIGRATED_VERSION.equals(configManager.getConfiguration(CONFIG_GROUP, MIGRATED_KEY))) return;
 		configManager.unsetConfiguration(CONFIG_GROUP, OLD_SLAYER_TASK_ENABLED_KEY);
@@ -83,6 +83,8 @@ public class ReminderManager {
 		resetTransientAlert();
 		resetTarget();
 		equipmentStateKnown = false;
+		lastWearingSalve = false;
+		lastWornHeadgearId = NO_ICON;
 	}
 	public boolean isShowAlert() {
 		return getDebugAlert() != SalveReminderConfig.DebugAlert.OFF || showAlert;
@@ -147,16 +149,13 @@ public class ReminderManager {
 	}
 	public void onItemContainerChanged(ItemContainerChanged event) {
 		if (event.getContainerId() != InventoryID.WORN) return;
-		ItemContainer equipment = event.getItemContainer();
-		boolean wearingSalve = isWearingSalveAmulet(equipment);
-		int wornHeadgearId = getWornSlayerHelmOrBlackMaskId(equipment);
-		boolean wearingHeadgear = wornHeadgearId != NO_ICON;
-		boolean becameStacked = wearingSalve && wearingHeadgear && (!equipmentStateKnown || !lastWearingSalve || !lastWearingSlayerHeadgear);
-		equipmentStateKnown = true;
-		lastWearingSalve = wearingSalve;
-		lastWearingSlayerHeadgear = wearingHeadgear;
-		if (becameStacked && config.showStackingWarning()) setTransientStackingAlert(wornHeadgearId);
-		else if ((!wearingSalve || !wearingHeadgear) && transientAlertType == AlertType.STACKING) resetTransientAlert();
+		boolean known = equipmentStateKnown;
+		boolean wasWearingSalve = lastWearingSalve;
+		int wasWornHeadgearId = lastWornHeadgearId;
+		updateEquipmentState(event.getItemContainer());
+		boolean becameStacked = lastWearingSalve && lastWornHeadgearId != NO_ICON && (!known || !wasWearingSalve || wasWornHeadgearId == NO_ICON);
+		if (becameStacked && config.showStackingWarning()) setStackingAlert(true, lastWornHeadgearId);
+		else if ((!lastWearingSalve || lastWornHeadgearId == NO_ICON) && transientAlertType == AlertType.STACKING) resetTransientAlert();
 		updateAlertState();
 	}
 	public void onConfigChanged(ConfigChanged event) {
@@ -202,24 +201,18 @@ public class ReminderManager {
 			return;
 		}
 		boolean isUndead = SalveData.isUndeadNpc(npcId);
-		ItemContainer equipment = client.getItemContainer(InventoryID.WORN);
-		boolean wearingSalve = isWearingSalveAmulet(equipment);
-		int wornHeadgearId = getWornSlayerHelmOrBlackMaskId(equipment);
-		if (config.showStackingWarning() && wearingSalve && wornHeadgearId != NO_ICON) {
-			setStackingAlert(wornHeadgearId);
-			return;
-		}
+		if (setStackingAlertIfNeeded(false)) return;
 		String taskName = getCurrentTaskName();
-		if (taskName != null && isOptionalTaskReminderEnabled(taskName) && isTaskBaseTarget(taskName) && (!isUndead || wearingSalve)) {
-			setTaskOptionAlert(taskName);
+		if (taskName != null && isOptionalTaskReminderEnabled(taskName) && isTaskBaseTarget(taskName) && (!isUndead || lastWearingSalve)) {
+			setTaskOptionAlert(false, taskName);
 			return;
 		}
-		if (config.warnOnUselessSalve() && wearingSalve && !isUndead) {
-			setItemAlert(AlertType.USELESS_TARGET, "Salve amulet is ineffective against the current target.", config.displayIcon().getItemID());
+		if (config.warnOnUselessSalve() && lastWearingSalve && !isUndead) {
+			setItemAlert(false, AlertType.USELESS_TARGET, "Salve amulet is ineffective against the current target.", config.displayIcon().getItemID());
 			return;
 		}
-		if (config.alertOnUndeadCombat() && !wearingSalve && isUndead) {
-			setItemAlert(AlertType.UNDEAD_TARGET, "Attacking an undead enemy without Salve amulet.", config.displayIcon().getItemID());
+		if (config.alertOnUndeadCombat() && !lastWearingSalve && isUndead) {
+			setItemAlert(false, AlertType.UNDEAD_TARGET, "Attacking an undead enemy without Salve amulet.", config.displayIcon().getItemID());
 			return;
 		}
 		applyTransientAlert();
@@ -227,91 +220,67 @@ public class ReminderManager {
 	private void triggerTaskAlert() {
 		String taskName = getCurrentTaskName();
 		if (taskName == null) return;
-		ItemContainer equipment = client.getItemContainer(InventoryID.WORN);
-		boolean wearingSalve = isWearingSalveAmulet(equipment);
-		int wornHeadgearId = getWornSlayerHelmOrBlackMaskId(equipment);
-		if (config.showStackingWarning() && wearingSalve && wornHeadgearId != NO_ICON) {
-			setTransientStackingAlert(wornHeadgearId);
-			return;
-		}
+		if (setStackingAlertIfNeeded(true)) return;
 		if (isOptionalTaskReminderEnabled(taskName)) {
-			setTransientTaskOptionAlert(taskName);
+			setTaskOptionAlert(true, taskName);
 			return;
 		}
 		boolean salveTask = isSalveTask(taskName);
-		if (config.warnOnUselessSalve() && wearingSalve && !salveTask) {
-			setTransientItemAlert(AlertType.USELESS_TASK, "Salve amulet is not effective for current slayer task.", config.displayIcon().getItemID());
+		if (config.warnOnUselessSalve() && lastWearingSalve && !salveTask) {
+			setItemAlert(true, AlertType.USELESS_TASK, "Salve amulet is not effective for current slayer task.", config.displayIcon().getItemID());
 			return;
 		}
-		if (config.alertOnUndeadCombat() && !wearingSalve && salveTask) {
-			setTransientTaskSalveAlert();
+		if (config.alertOnUndeadCombat() && !lastWearingSalve && salveTask) {
+			setItemAlert(true, AlertType.SALVE_TASK, "Salve amulet is effective for current slayer task.", config.displayIcon().getItemID());
 			return;
 		}
 		if (isTransientTaskAlert()) resetTransientAlert();
 	}
 	private void triggerUndeadObjectAlert() {
 		resetTarget();
-		ItemContainer equipment = client.getItemContainer(InventoryID.WORN);
-		boolean wearingSalve = isWearingSalveAmulet(equipment);
-		int wornHeadgearId = getWornSlayerHelmOrBlackMaskId(equipment);
-		if (config.showStackingWarning() && wearingSalve && wornHeadgearId != NO_ICON) {
-			setTransientStackingAlert(wornHeadgearId);
-			return;
-		}
-		if (config.alertOnUndeadCombat() && !wearingSalve) {
-			setTransientItemAlert(AlertType.UNDEAD_TARGET, "Attacking an undead enemy without Salve amulet.", config.displayIcon().getItemID());
+		if (setStackingAlertIfNeeded(true)) return;
+		if (config.alertOnUndeadCombat() && !lastWearingSalve) {
+			setItemAlert(true, AlertType.UNDEAD_TARGET, "Attacking an undead enemy without Salve amulet.", config.displayIcon().getItemID());
 			return;
 		}
 		if (transientAlertType == AlertType.UNDEAD_TARGET) resetTransientAlert();
 	}
-	private void setStackingAlert(int wornHeadgearId) {
-		setItemAlert(AlertType.STACKING, "Salve amulet does not stack with Black mask or Slayer helmet.", wornHeadgearId);
+	private boolean setStackingAlertIfNeeded(boolean transientAlert) {
+		updateEquipmentState();
+		if (!config.showStackingWarning() || !lastWearingSalve || lastWornHeadgearId == NO_ICON) return false;
+		setStackingAlert(transientAlert, lastWornHeadgearId);
+		return true;
 	}
-	private void setTransientStackingAlert(int wornHeadgearId) {
-		setTransientItemAlert(AlertType.STACKING, "Salve amulet does not stack with Black mask or Slayer helmet.", wornHeadgearId);
+	private void setStackingAlert(boolean transientAlert, int wornHeadgearId) {
+		setItemAlert(transientAlert, AlertType.STACKING, "Salve amulet does not stack with Black mask or Slayer helmet.", wornHeadgearId);
 	}
-	private void setTaskOptionAlert(String taskName) {
+	private void setTaskOptionAlert(boolean transientAlert, String taskName) {
 		String option = SalveData.getTaskOptionName(taskName);
 		if (option == null) option = "Salve";
-		setTaskIconAlert(option + " is a Salve option for current slayer task.", taskName);
+		setTaskIconAlert(transientAlert, option + " is a Salve option for current slayer task.", taskName);
 	}
-	private void setTransientTaskOptionAlert(String taskName) {
-		String option = SalveData.getTaskOptionName(taskName);
-		if (option == null) option = "Salve";
-		setTransientTaskIconAlert(option + " is a Salve option for current slayer task.", taskName);
-	}
-	private void setTransientTaskSalveAlert() {
-		setTransientItemAlert(AlertType.SALVE_TASK, "Salve amulet is effective for current slayer task.", config.displayIcon().getItemID());
-	}
-	private void setTaskIconAlert(String tooltip, String taskName) {
+	private void setTaskIconAlert(boolean transientAlert, String tooltip, String taskName) {
 		int itemId = SalveData.getTaskItemId(taskName);
 		if (itemId == NO_ICON) itemId = config.displayIcon().getItemID();
-		setAlert(AlertType.TASK_OPTION, tooltip, itemId, SalveData.getTaskSpriteId(taskName));
+		setAlert(transientAlert, AlertType.TASK_OPTION, tooltip, itemId, SalveData.getTaskSpriteId(taskName));
 	}
-	private void setTransientTaskIconAlert(String tooltip, String taskName) {
-		int itemId = SalveData.getTaskItemId(taskName);
-		if (itemId == NO_ICON) itemId = config.displayIcon().getItemID();
-		setTransientAlert(AlertType.TASK_OPTION, tooltip, itemId, SalveData.getTaskSpriteId(taskName));
+	private void setItemAlert(boolean transientAlert, AlertType type, String tooltip, int itemId) {
+		setAlert(transientAlert, type, tooltip, itemId, NO_ICON);
 	}
-	private void setItemAlert(AlertType type, String tooltip, int itemId) {
-		setAlert(type, tooltip, itemId, NO_ICON);
-	}
-	private void setTransientItemAlert(AlertType type, String tooltip, int itemId) {
-		setTransientAlert(type, tooltip, itemId, NO_ICON);
-	}
-	private void setAlert(AlertType type, String tooltip, int itemId, int spriteId) {
+	private void setAlert(boolean transientAlert, AlertType type, String tooltip, int itemId, int spriteId) {
+		if (transientAlert) {
+			transientAlertType = type;
+			transientTooltipReason = tooltip;
+			transientItemId = itemId;
+			transientSpriteId = spriteId;
+			transientTicks = 0;
+			return;
+		}
 		showAlert = true;
 		alertType = type;
 		tooltipReason = tooltip;
 		alertItemId = itemId;
 		alertSpriteId = spriteId;
-	}
-	private void setTransientAlert(AlertType type, String tooltip, int itemId, int spriteId) {
-		transientAlertType = type;
-		transientTooltipReason = tooltip;
-		transientItemId = itemId;
-		transientSpriteId = spriteId;
-		transientTicks = 0;
 	}
 	private void applyTransientAlert() {
 		if (transientAlertType == AlertType.NONE) {
@@ -323,7 +292,7 @@ public class ReminderManager {
 			resetAlert();
 			return;
 		}
-		setAlert(transientAlertType, transientTooltipReason, transientItemId, transientSpriteId);
+		setAlert(false, transientAlertType, transientTooltipReason, transientItemId, transientSpriteId);
 	}
 	private void updateFlash() {
 		if (isShowAlert()) {
@@ -331,6 +300,16 @@ public class ReminderManager {
 			return;
 		}
 		flash = false;
+	}
+	private void updateEquipmentState() {
+		if (equipmentStateKnown) return;
+		ItemContainer equipment = client.getItemContainer(InventoryID.WORN);
+		if (equipment != null) updateEquipmentState(equipment);
+	}
+	private void updateEquipmentState(ItemContainer equipment) {
+		lastWearingSalve = isWearingSalveAmulet(equipment);
+		lastWornHeadgearId = getWornSlayerHelmOrBlackMaskId(equipment);
+		equipmentStateKnown = true;
 	}
 	private int getWornSlayerHelmOrBlackMaskId(ItemContainer equipment) {
 		if (equipment == null) return NO_ICON;
