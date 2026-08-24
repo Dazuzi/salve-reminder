@@ -4,15 +4,9 @@ import net.runelite.api.gameval.NpcID;
 import net.runelite.api.gameval.ObjectID;
 import net.runelite.api.gameval.SpriteID;
 import java.util.BitSet;
-import java.util.Set;
 public final class SalveData {
-	public static final int OATHPLATE_SLAYER_HELMET_I = 33439;
-	private static final int OATHPLATE_SLAYER_HELMET_I_SW = 33441;
-	private static final int OATHPLATE_SLAYER_HELMET_I_PVPA = 33443;
-	public static final int RADIANT_SLAYER_HELMET_I = 33445;
-	private static final int RADIANT_SLAYER_HELMET_I_SW = 33447;
-	private static final int RADIANT_SLAYER_HELMET_I_PVPA = 33449;
-	private static final BitSet SALVE_AMULET_IDS = ids(
+	private static final class SalveAmuletIds {
+		private static final BitSet IDS = ids(
 		ItemID.CRYSTALSHARD_NECKLACE,
 		ItemID.LOTR_CRYSTALSHARD_NECKLACE_UPGRADE,
 		ItemID.NZONE_SALVE_AMULET,
@@ -21,8 +15,10 @@ public final class SalveData {
 		ItemID.SW_SALVE_AMULET_E,
 		ItemID.PVPA_SALVE_AMULET,
 		ItemID.PVPA_SALVE_AMULET_E
-	);
-	private static final BitSet BLACK_MASK_IDS = ids(
+		);
+	}
+	private static final class BlackMaskIds {
+		private static final BitSet IDS = ids(
 		ItemID.HARMLESS_BLACK_MASK_10,
 		ItemID.HARMLESS_BLACK_MASK_9,
 		ItemID.HARMLESS_BLACK_MASK_8,
@@ -121,21 +117,19 @@ public final class SalveData {
 		ItemID.PVPA_SLAYER_HELM_I_HOODED,
 		ItemID.LEAGUE_6_SLAYER_HELM1,
 		ItemID.LEAGUE_6_SLAYER_HELM2,
-		OATHPLATE_SLAYER_HELMET_I,
-		OATHPLATE_SLAYER_HELMET_I_SW,
-		OATHPLATE_SLAYER_HELMET_I_PVPA,
-		RADIANT_SLAYER_HELMET_I,
-		RADIANT_SLAYER_HELMET_I_SW,
-		RADIANT_SLAYER_HELMET_I_PVPA
-	);
-	public static final Set<String> MANDATORY_SLAYER_TASKS = Set.of(
-		"aberrant spectres", "ankou", "calvar'ion", "crawling hands", "ghosts",
-		"revenants", "shades", "vet'ion", "vorkath", "zombies"
-	);
+		ItemID.LEAGUE_6_SLAYER_HELM1_I,
+		ItemID.SW_LEAGUE_6_SLAYER_HELM1_I,
+		ItemID.PVPA_LEAGUE_6_SLAYER_HELM1_I,
+		ItemID.LEAGUE_6_SLAYER_HELM2_I,
+		ItemID.SW_LEAGUE_6_SLAYER_HELM2_I,
+		ItemID.PVPA_LEAGUE_6_SLAYER_HELM2_I
+		);
+	}
 	public static final String BLUE_DRAGON_TASK = "blue dragons";
 	public static final String SKELETON_TASK = "skeletons";
 	public static final String OGRE_TASK = "ogres";
-	private static final BitSet UNDEAD_NPCS = ids(
+	private static final class UndeadNpcIds {
+		private static final BitSet IDS = ids(
 		NpcID.SLAYER_ABBERANT_SPECTRE_1,
 		NpcID.SLAYER_ABBERANT_SPECTRE_2,
 		NpcID.SLAYER_ABBERANT_SPECTRE_3,
@@ -651,22 +645,40 @@ public final class SalveData {
 		NpcID.DS2_ZOMBIE_MAGIC,
 		NpcID.VORKATH_SPAWN_QUEST,
 		NpcID.VORKATH_SPAWN
-	);
-	private static final BitSet UNDEAD_OBJECTS = ids(
-		ObjectID.POH_COMBAT_DUMMY_UNDEADSLAYER,
-		ObjectID.POH_COMBAT_DUMMY_UPGRADED_1_UNDEAD
-	);
+		);
+	}
 	public static boolean isSalveAmulet(int id) {
-		return contains(SALVE_AMULET_IDS, id);
+		if (id < 0) return false;
+		return contains(SalveAmuletIds.IDS, id);
 	}
 	public static boolean isBlackMask(int id) {
-		return contains(BLACK_MASK_IDS, id);
+		if (id < 0) return false;
+		return contains(BlackMaskIds.IDS, id);
 	}
 	public static boolean isUndeadNpc(int id) {
-		return contains(UNDEAD_NPCS, id);
+		if (id < 0) return false;
+		return contains(UndeadNpcIds.IDS, id);
 	}
 	public static boolean isUndeadObject(int id) {
-		return contains(UNDEAD_OBJECTS, id);
+		return id == ObjectID.POH_COMBAT_DUMMY_UNDEADSLAYER || id == ObjectID.POH_COMBAT_DUMMY_UPGRADED_1_UNDEAD;
+	}
+	public static boolean isMandatorySlayerTask(String taskName) {
+		if (taskName == null) return false;
+		switch (taskName) {
+			case "aberrant spectres":
+			case "ankou":
+			case "calvar'ion":
+			case "crawling hands":
+			case "ghosts":
+			case "revenants":
+			case "shades":
+			case "vet'ion":
+			case "vorkath":
+			case "zombies":
+				return true;
+			default:
+				return false;
+		}
 	}
 	public static int getTaskSpriteId(String taskName) {
 		if (BLUE_DRAGON_TASK.equals(taskName) || "vorkath".equals(taskName)) return SpriteID.IconBoss25x25.VORKATH;
@@ -686,7 +698,7 @@ public final class SalveData {
 		return null;
 	}
 	private static boolean contains(BitSet ids, int id) {
-		return id >= 0 && ids.get(id);
+		return ids.get(id);
 	}
 	private static BitSet ids(int... ids) {
 		BitSet set = new BitSet();

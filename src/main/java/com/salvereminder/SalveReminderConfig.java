@@ -1,26 +1,28 @@
 package com.salvereminder;
-import com.salvereminder.data.SalveData;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.client.config.*;
 import java.awt.*;
 @ConfigGroup("salvereminder")
 public interface SalveReminderConfig extends Config {
-	@RequiredArgsConstructor
+	String GROUP = "salvereminder";
 	enum SalveIcon {
 		SALVE_AMULET("Salve amulet", ItemID.CRYSTALSHARD_NECKLACE),
 		SALVE_AMULET_E("Salve amulet (e)", ItemID.LOTR_CRYSTALSHARD_NECKLACE_UPGRADE),
 		SALVE_AMULET_EI("Salve amulet (ei)", ItemID.NZONE_SALVE_AMULET_E);
 		private final String name;
-		@Getter
 		private final int itemID;
+		SalveIcon(String name, int itemID) {
+			this.name = name;
+			this.itemID = itemID;
+		}
+		public int getItemID() {
+			return itemID;
+		}
 		@Override
 		public String toString() {
 			return name;
 		}
 	}
-	@RequiredArgsConstructor
 	enum StackingIcon {
 		AUTO("Auto equipped", -1),
 		BLACK_MASK("Black mask", ItemID.SW_BLACK_MASK),
@@ -37,17 +39,22 @@ public interface SalveReminderConfig extends Config {
 		TZKAL_SLAYER_HELMET("TzKal Slayer", ItemID.SLAYER_HELM_ZUK),
 		ARAXYTE_SLAYER_HELMET("Araxyte Slayer", ItemID.SLAYER_HELM_ARAXYTE),
 		HOODED_SLAYER_HELMET("Hooded Slayer", ItemID.SLAYER_HELM_HOODED),
-		OATHPLATE_SLAYER_HELMET("Oathplate Slayer", SalveData.OATHPLATE_SLAYER_HELMET_I),
-		RADIANT_SLAYER_HELMET("Radiant Slayer", SalveData.RADIANT_SLAYER_HELMET_I);
+		OATHPLATE_SLAYER_HELMET("Oathplate Slayer", ItemID.LEAGUE_6_SLAYER_HELM1_I),
+		RADIANT_SLAYER_HELMET("Radiant Slayer", ItemID.LEAGUE_6_SLAYER_HELM2_I);
 		private final String name;
-		@Getter
 		private final int itemID;
+		StackingIcon(String name, int itemID) {
+			this.name = name;
+			this.itemID = itemID;
+		}
+		public int getItemID() {
+			return itemID;
+		}
 		@Override
 		public String toString() {
 			return name;
 		}
 	}
-	@RequiredArgsConstructor
 	enum DebugAlert {
 		OFF("Off"),
 		USELESS_TARGET("Useless target"),
@@ -59,6 +66,9 @@ public interface SalveReminderConfig extends Config {
 		VETION_TASK("Vet'ion task"),
 		ZOGRE_TASK("Zogre task");
 		private final String name;
+		DebugAlert(String name) {
+			this.name = name;
+		}
 		@Override
 		public String toString() {
 			return name;

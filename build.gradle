@@ -14,17 +14,26 @@ repositories {
 }
 
 def runeLiteVersion = 'latest.release'
-def pluginMainClass = 'com.salvereminder.SalveReminderPluginTest'
+def pluginMainClass = 'com.salvereminder.SalveReminderPluginLauncher'
+
+configurations {
+	runeLiteRuntime.extendsFrom compileOnly
+}
+
+sourceSets {
+	launcher {
+		java.srcDir 'src/launcher/java'
+		compileClasspath = sourceSets.main.output + configurations.runeLiteRuntime
+		runtimeClasspath = output + compileClasspath
+	}
+}
 
 dependencies {
 	compileOnly "net.runelite:client:$runeLiteVersion"
 
-	compileOnly 'org.projectlombok:lombok:1.18.30'
-	annotationProcessor 'org.projectlombok:lombok:1.18.30'
-
-	testImplementation 'junit:junit:4.12'
+	testImplementation 'junit:junit:4.13.2'
+	testImplementation 'org.mockito:mockito-core:4.11.0'
 	testImplementation "net.runelite:client:$runeLiteVersion"
-	testImplementation "net.runelite:jshell:$runeLiteVersion"
 }
 
 group = 'com.salvereminder'
@@ -33,11 +42,12 @@ version = '1.0-SNAPSHOT'
 tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
 	options.release.set(11)
+	options.compilerArgs.add('-Xlint:all')
 }
 
 tasks.register('run', JavaExec) {
 	group = BasePlugin.BUILD_GROUP
-	classpath = sourceSets.test.runtimeClasspath
+	classpath = sourceSets.launcher.runtimeClasspath
 	mainClass = pluginMainClass
 	enableAssertions = true
 	args '--developer-mode'
@@ -45,16 +55,18 @@ tasks.register('run', JavaExec) {
 }
 
 tasks.register('shadowJar', Jar) {
-	dependsOn configurations.testRuntimeClasspath
+	dependsOn configurations.runeLiteRuntime
 	manifest {
 		attributes('Main-Class': pluginMainClass, 'Multi-Release': true)
 	}
 
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	from sourceSets.main.output
-	from sourceSets.test.output
+	from(sourceSets.launcher.output) {
+		include 'com/salvereminder/SalveReminderPluginLauncher.class'
+	}
 	from {
-		configurations.testRuntimeClasspath.collect { file ->
+		configurations.runeLiteRuntime.collect { file ->
 			file.isDirectory() ? file : zipTree(file)
 		}
 	}
